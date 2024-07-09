@@ -1,0 +1,71 @@
+    php artisan vendor:publish --tag="cognito-migrations"
+
+        use Ellaisys\Cognito\AwsCognito;
+            
+                /**
+                     * Register any application services.
+                          */
+                              public function register(): void
+                                  {
+                                            AwsCognito::ignoreMigrations();
+                                  }
+                                  }
+
+                                      # AWS configurations for cloud storage
+                                          AWS_ACCESS_KEY_ID="Axxxxxxxxxxxxxxxxxxxxxxxx6"
+                                              AWS_SECRET_ACCESS_KEY="mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx+"
+
+                                                  # AWS Cognito configurations
+                                                      AWS_COGNITO_CLIENT_ID="6xxxxxxxxxxxxxxxxxxxxxxxxr"
+                                                          AWS_COGNITO_CLIENT_SECRET="1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1"
+                                                              AWS_COGNITO_USER_POOL_ID="xxxxxxxxxxxxxxxxx"
+                                                                  AWS_COGNITO_REGION="xxxxxxxxxxx" //optional - default value is 'us-east-1'
+                                                                      AWS_COGNITO_VERSION="latest" //optional - default value is 'latest'
+                                                                      
+
+                                                               AWS_COGNITO_ALLOW_FORGOT_PASSWORD_RESEND=true
+
+
+                                                               protected $routeMiddleware = [
+                                                                        ...
+                                                                                'aws-cognito' => \Ellaisys\Cognito\Http\Middleware\AwsCognitoAuthenticate::class
+                                                               ]
+
+                                                               ]               
+
+                                                                   Route::middleware('auth')->get('user', 'NameOfTheController@functionName');
+
+                                                               Route::middleware('auth')->get('user', 'NameOfTheController@functionName');
+
+                                                              Route::middleware('aws-cognito')->get('user', 'NameOfTheController@functionName');
+
+                                                              use Ellaisys\Cognito\Auth\RegistersUsers;
+
+                                                                  class UserController extends BaseController
+                                                                      {
+                                                                              use RegistersUsers;
+
+                                                                                      public function register(Request $request)
+                                                                                              {
+                                                                                                          $validator = $request->validate([
+                                                                                                                          'name' => 'required|max:255',
+                                                                                                                                          'email' => 'required|email|max:64|unique:users',
+                                                                                                                                                          'password' => 'sometimes|confirmed|min:6|max:64',
+                                                                                                                                                                      ]);
+
+                                                                                                                                                                                  //Create credentials object
+                                                                                                                                                                                              $collection = collect($request->all());
+                                                                                                                                                                                                          $data = $collection->only('name', 'email', 'password'); //passing 'password' is optional.
+
+                                                                                                                                                                                                                      //Register User in cognito
+                                                                                                                                                                                                                                  if ($cognitoRegistered=$this->createCognitoUser($data)) {
+
+                                                                                                                                                                                                                                                  //If successful, create the user in local db
+                                                                                                                                                                                                                                                                  User::create($collection->only('name', 'email'));
+                                                                                                                                                                                                                                                                              } //End if
+
+                                                                                                                                                                                                                                                                                          //Redirect to view
+                                                                                                                                                                                                                                                                                                      return view('login');
+                                                                                                                                                                                                                                                                                                              }
+                                                                                                                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                                                                                                                                   

@@ -1,0 +1,101 @@
+# create new Python3 >=3.8,<3.11 environment
+conda create -n redundans python=3.10
+# activate it
+conda activate redundans
+# and install redundans
+conda install -c bioconda redundans 
+
+source <(curl -Ls https://github.com/Gabaldonlab/redundans/raw/master/INSTALL.sh)
+
+#Pull the image directly from dockerhub
+docker pull cgenomics/redundans:latest
+
+# process the data inside the image - all data will be lost at the end
+docker run -it -w /root/src/redundans cgenomics/redundans:latest ./redundans.py -v -i test/{600,5000}_{1,2}.fq.gz -f test/contigs.fa -o test/run1
+
+# if you wish to process local files, you need to mount the volume with -v
+## make sure you are in redundans repo directory (containing test/ directory)
+docker run -v `pwd`/test:/test:rw -it cgenomics/redundans:latest /root/src/redundans/redundans.py -v -i test/*.fq.gz -f test/contigs.fa -o test/run1
+
+#Pull from the singularity repo
+singularity pull --arch amd64 library://cgenomics/redundans/redundans:2.0
+
+#Build the image based on the docker repo
+singularity build redundans.sif docker://cgenomics/redundans
+
+#Use exec instead of run to account for shell-based wildcarsds * and ?
+singularity exec redundans.sif bash -c "/root/src/redundans/redundans.py -v -i /root/src/redundans/test/*_?.fq.gz -f /root/src/redundans/test/contigs.fa -o /tmp/run1"
+
+#Pull from the singularity repo
+singularity pull --arch amd64 library://cgenomics/redundans/redundans:2.0
+
+#Build the image based on the docker repo
+singularity build redundans.sif docker://cgenomics/redundans
+
+#Use exec instead of run to account for shell-based wildcarsds * and ?
+singularity exec redundans.sif bash -c "/root/src/redundans/redundans.py -v -i /root/src/redundans/test/*_?.fq.gz -f /root/src/redundans/test/contigs.fa -o /tmp/run1"
+
+  -h, --help            show this help message and exit
+    -v, --verbose         verbose
+      --version             show program's version number and exit
+        -i FASTQ, --fastq FASTQ
+                                FASTQ PE / MP files
+                                  -f FASTA, --fasta FASTA
+                                                          FASTA file with contigs / scaffolds
+                                                            -o OUTDIR, --outdir OUTDIR
+                                                                                    output directory [redundans]
+                                                                                      -t THREADS, --threads THREADS
+                                                                                                              no. of threads to run [4]
+                                                                                                                --resume              resume previous run
+                                                                                                                  --log LOG             output log to [stderr]
+                                                                                                                    --nocleaning
+
+                                                                                                                      -m MEM, --mem MEM     max memory to allocate (in GB) for the Platanus assembler [2]
+                                                                                                                        --tmp TMP             tmp directory [/tmp]
+
+                                                                                                                          --identity IDENTITY   min. identity [0.51]
+                                                                                                                            --overlap OVERLAP     min. overlap  [0.80]
+                                                                                                                              --minLength MINLENGTH
+                                                                                                                                                      min. contig length [200]
+                                                                                                                                                        --minimap2reduce      Use minimap2 for the initial and final Reduction step. Recommended for input assembled contigs from long reads or larger contigs using --preset[asm5] by default. By default LASTal is used for Reduction.
+                                                                                                                                                          -x INDEX, --index INDEX
+                                                                                                                                                                                  Minimap2 parameter -i used to load at most INDEX target bases into RAM for indexing [4G]. It has to be provided as a string INDEX ending with k/K/m/M/g/G.
+                                                                                                                                                                                    --noreduction         Skip reduction
+
+                                                                                                                                                                                      -j JOINS, --joins JOINS
+                                                                                                                                                                                                              min pairs to join contigs [5]
+                                                                                                                                                                                                                -a LINKRATIO, --linkratio LINKRATIO
+                                                                                                                                                                                                                                        max link ratio between two best contig pairs [0.7]
+                                                                                                                                                                                                                                          --limit LIMIT         align subset of reads [0.2]
+                                                                                                                                                                                                                                            -q MAPQ, --mapq MAPQ  min mapping quality [10]
+                                                                                                                                                                                                                                              --iters ITERS         iterations per library [2]
+                                                                                                                                                                                                                                                --noscaffolding       Skip short-read scaffolding
+                                                                                                                                                                                                                                                  -b, --usebwa          use bwa mem for alignment [use snap-aligner]
+
+                                                                                                                                                                                                                                                    --identity IDENTITY   min. identity [0.51]
+                                                                                                                                                                                                                                                      --overlap OVERLAP     min. overlap  [0.80]
+                                                                                                                                                                                                                                                        --minLength MINLENGTH
+                                                                                                                                                                                                                                                                                min. contig length [200]
+                                                                                                                                                                                                                                                                                  --minimap2reduce      Use minimap2 for the initial and final Reduction step. Recommended for input assembled contigs from long reads or larger contigs using --preset[asm5] by default. By default LASTal is used for Reduction.
+                                                                                                                                                                                                                                                                                    -x INDEX, --index INDEX
+                                                                                                                                                                                                                                                                                                            Minimap2 parameter -i used to load at most INDEX target bases into RAM for indexing [4G]. It has to be provided as a string INDEX ending with k/K/m/M/g/G.
+                                                                                                                                                                                                                                                                                                              --noreduction         Skip reduction
+                                                                                                                                                                                                                                                                                                                -l LONGREADS, --longreads LONGREADS
+                                                                                                                                                                                                                                                                                                                                        FastQ/FastA files with long reads
+                                                                                                                                                                                                                                                                                                                                          -s, --populateScaffolds
+                                                                                                                                                                                                                                                                                                                                                                  Run populateScaffolds mode for long read scaffolding, else generate a dirty assembly for reference-based scaffolding. Not recommended for highly repetitive genomes. Default False.
+                                                                                                                                                                                                                                                                                                                                                                    --minimap2scaffold         Use Minimap2 for aligning long reads. Preset usage dependant on file name convention (case insensitive): ont, nanopore, pb, pacbio, hifi, hi_fi, hi-fi. ie: s324_nanopore.fq.gz. Else it uses LASTal.
+                                                                                                                                                                                                                                                                                                                                                                      --runmerqury           Run meryldb and merqury for assembly kmer multiplicity stats. [False] by default.
+                                                                                                                                                                                                                                                                                                                                                                        -k KMER, --kmer KMER  K-mer size for meryl [21]
+
+                                                                                                                                                                                                                                                                                                                                                                        # reduction, scaffolding with paired-end, mate pairs and long reads used to generate a miniasm assembly to do reference-based scaffolding, and gap closing with paired-end and mate pairs using as an aligner minimap2
+                                                                                                                                                                                                                                                                                                                                                                        ./redundans.py -v -i test/*_?.fq.gz -l test/nanopore.fa.gz -f test/contigs.fa -o test/run_short_long_ref --minimap2scaffold
+
+                                                                                                                                                                                                                                                                                                                                                                        # reduction, scaffolding with paired-end, mate pairs and long reads, and gap closing with paired-end and mate pairs using populateScaffolds method using as aligner minimap2
+                                                                                                                                                                                                                                                                                                                                                                        ./redundans.py -v -i test/*_?.fq.gz -l test/pacbio.fq.gz test/nanopore.fa.gz -f test/contigs.fa -o test/run_short_long_populatescaffold --minimap2scaffold --populateScaffolds
+
+                                                                                                                                                                                                                                                                                                                                                                        # scaffolding and gap closing with paired-end and mate pairs (no reduction)
+                                                                                                                                                                                                                                                                                                                                                                        ./redundans.py -v -i test/*_?.fq.gz -f test/contigs.fa -o test/run_short-scaffolding-closing --noreduction
+
+                                                                                                                                                                                                                                                                                                                                                                        # reduction, reference-based scaffolding and gap closing with paired-end reads (--noscaffolding disables only short-read scaffolding)
+                                                                                                                                                                                                                                                                                                                                                                        ./redundans.py -v -i test/600_?.fq.gz -r test/ref.fa -f test/contigs.fa -o test/run_ref_pe-closing --noscaffolding

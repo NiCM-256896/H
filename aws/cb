@@ -1,0 +1,30 @@
+        $cognitoClient->deleteUser($user->email);
+                $user->delete();
+
+                    public function deleteUser(Request $request, AwsCognitoClient $client)
+
+                        IMPORTANT: You want to secure this action by maybe security questions, a second delete password or by confirming 
+                            the email address.
+
+
+                                # Cache Configuration
+                                    CACHE_DRIVER="dynamodb"
+                                        DYNAMODB_CACHE_TABLE="table-name-of-your-choice" //This should match the table name provided above
+
+                                            # Session Configuration
+                                                SESSION_DRIVER="dynamodb"
+                                                    SESSION_LIFETIME=120
+                                                        SESSION_DOMAIN="set-your-domain-name" //The domain name can be as per your preference
+                                                            SESSION_SECURE_COOKIE=true
+
+                                                                # DynamoDB Configuration
+                                                                    DYNAMODB_ENDPOINT="https://dynamodb.us-west-2.amazonaws.com" // You can change the endpoint based of different regions
+                                                           
+                                                                    
+                                                                        AWS_COGNITO_FORCE_PASSWORD_CHANGE_API=false     //Make true for forcing password change
+                                                                            AWS_COGNITO_FORCE_PASSWORD_AUTO_UPDATE_API=true //Make false for stopping auto password change
+                                                                            
+
+                                                                               AWS_COGNITO_CLIENT_SECRET_ALLOW=false
+
+                                                                               

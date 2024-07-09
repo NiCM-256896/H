@@ -1,0 +1,222 @@
+    use Ellaisys\Cognito\Auth\RegistersUsers;
+
+        class UserController extends BaseController
+            {
+                        use RegistersUsers;
+
+                                public function register(Request $request)
+                                        {
+                                                        $validator = $request->validate([
+                                                                            'name' => 'required|max:255',
+                                                                                            'email' => 'required|email|max:64|unique:users',
+                                                                                                            'password' => 'sometimes|confirmed|min:6|max:64',
+                                                        ]);
+
+                                                                    //Create credentials object
+                                                                                $collection = collect($request->all());
+                                                                                            $data = $collection->only('name', 'email', 'password'); //passing 'password' is optional.
+
+                                                                                                        //Register User in cognito
+                                                                                                                    if ($cognitoRegistered=$this->createCognitoUser($data)) {
+
+                                                                                                                                        //If successful, create the user in local db
+                                                                                                                                                        User::create($collection->only('name', 'email'));
+                                                                                                                    } //End if
+
+                                                                                                                                //Redirect to view
+                                                                                                                                            return view('login');
+                                        }
+            }
+
+                                                                                                                    }
+                                                        ])
+                                        }
+            }
+
+
+                AWS_COGNITO_NEW_USER_MESSAGE_ACTION="SUPPRESS"
+
+
+                AWS_COGNITO_FORCE_NEW_USER_EMAIL_VERIFIED=true //optional - default value is false.
+
+
+             AWS_COGNITO_DEFAULT_USER_GROUP="Customers"
+
+
+                 AWS_COGNITO_FORCE_NEW_USER_PASSWORD=true //optional - default value is false.  
+
+
+             namespace Ellaisys\Cognito\Auth;
+
+                 protected function attemptLogin (
+                            Collection $request, string $guard='web', 
+                                    string $paramUsername='email', string $paramPassword='password', 
+                                            bool $isJsonResponse=false
+                 ) {
+                            ...
+                                    ...
+
+
+                                            ...
+                 }
+
+                 }
+                 )    
+
+
+                     namespace App\Http\Controllers;
+
+                         ...
+
+                             use Ellaisys\Cognito\AwsCognitoClaim;
+                                 use Ellaisys\Cognito\Auth\AuthenticatesUsers as CognitoAuthenticatesUsers;
+
+                                     class AuthController extends Controller
+                                         {
+                                                    use CognitoAuthenticatesUsers;
+
+                                                            /**
+                                                                     * Authenticate User
+                                                                              * 
+                                                                                       * @throws \HttpException
+                                                                                                * 
+                                                                                                         * @return mixed
+                                                                                                                  */
+                                                                                                                          public function login(\Illuminate\Http\Request $request)
+                                                                                                                                  {
+                                                                                                                                                ...
+
+                                                                                                                                                            //Convert request to collection
+                                                                                                                                                                        $collection = collect($request->all());
+
+                                                                                                                                                                                    //Authenticate with Cognito Package Trait (with 'web' as the auth guard)
+                                                                                                                                                                                                if ($response = $this->attemptLogin($collection, 'web')) {
+                                                                                                                                                                                                                    if ($response===true) {
+                                                                                                                                                                                                                                            return redirect(route('home'))->with('success', true);
+                                                                                                                                                                                                                    } else if ($response===false) {
+                                                                                                                                                                                                                                            // If the login attempt was unsuccessful you may increment the number of attempts
+                                                                                                                                                                                                                                                                // to login and redirect the user back to the login form. Of course, when this
+                                                                                                                                                                                                                                                                                    // user surpasses their maximum number of attempts they will get locked out.
+                                                                                                                                                                                                                                                                                                        //
+                                                                                                                                                                                                                                                                                                                            //$this->incrementLoginAttempts($request);
+                                                                                                                                                                                                                                                                                                                                                //
+                                                                                                                                                                                                                                                                                                                                                                    //$this->sendFailedLoginResponse($collection, null);
+                                                                                                                                                                                                                    } else {
+                                                                                                                                                                                                                                            return $response;
+                                                                                                                                                                                                                    } //End if
+                                                                                                                                                                                                } //End if
+
+                                                                                                                                  } //Function ends
+
+                                                                                                                                          ...
+                                         } //Class ends
+
+                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                    }
+                                                                                                                                                                                                }
+                                                                                                                                  }
+                                         }          
+
+
+                                             namespace App\Api\Controller;
+
+                                                 ...
+
+                                                     use Ellaisys\Cognito\AwsCognitoClaim;
+                                                         use Ellaisys\Cognito\Auth\AuthenticatesUsers as CognitoAuthenticatesUsers;
+
+                                                             class AuthApiController extends Controller
+                                                                 {
+                                                                            use CognitoAuthenticatesUsers;
+
+                                                                                    /**
+                                                                                             * Authenticate User
+                                                                                                      * 
+                                                                                                               * @throws \HttpException
+                                                                                                                        * 
+                                                                                                                                 * @return mixed
+                                                                                                                                          */
+                                                                                                                                                  public function login(\Illuminate\Http\Request $request)
+                                                                                                                                                          {
+                                                                                                                                                                        ...
+
+                                                                                                                                                                                    //Convert request to collection
+                                                                                                                                                                                                $collection = collect($request->all());
+
+                                                                                                                                                                                                            //Authenticate with Cognito Package Trait (with 'api' as the auth guard)
+                                                                                                                                                                                                                        if ($claim = $this->attemptLogin($collection, 'api', 'username', 'password', true)) {
+                                                                                                                                                                                                                                            if ($claim instanceof AwsCognitoClaim) {
+                                                                                                                                                                                                                                                                    return $claim->getData();
+                                                                                                                                                                                                                                            } else {
+                                                                                                                                                                                                                                                                    return response()->json(['status' => 'error', 'message' => $claim], 400);
+                                                                                                                                                                                                                                            } //End if
+                                                                                                                                                                                                                        } //End if
+
+                                                                                                                                                          } //Function ends
+
+
+                                                                                                                                                                  ...
+                                                                 } //Class ends
+
+                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                        }
+                                                                                                                                                          }
+                                                                 }     
+
+
+                                                                    ...
+
+                                                                       Auth::guard('api')->logout();
+
+
+                                                                          ...
+
+                                                                             Auth::guard('api')->logout(true); //Revoke the Refresh Token.
+                                                                             
+
+                                                                                 namespace App\Api\Controller;
+
+                                                                                     ...
+
+                                                                                         use Ellaisys\Cognito\AwsCognitoClaim;
+                                                                                             use Ellaisys\Cognito\Auth\RefreshToken;
+
+                                                                                                 class AuthApiController extends Controller
+                                                                                                     {
+                                                                                                                use RefreshToken;
+
+                                                                                                                        /**
+                                                                                                                                 * Generate a new token using refresh token.
+                                                                                                                                          * 
+                                                                                                                                                   * @throws \HttpException
+                                                                                                                                                            * 
+                                                                                                                                                                     * @return mixed
+                                                                                                                                                                              */
+                                                                                                                                                                                      public function refreshToken(\Illuminate\Http\Request $request)
+                                                                                                                                                                                              {
+                                                                                                                                                                                                            ...
+
+                                                                                                                                                                                                                        $validator = $request->validate([
+                                                                                                                                                                                                                                            'email' => 'required|email',
+                                                                                                                                                                                                                                                            'refresh_token' => 'required'
+                                                                                                                                                                                                                        ]);
+                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                try {
+                                                                                                                                                                                                                                                                    return $this->refresh($request, 'email', 'refresh_token');
+                                                                                                                                                                                                                                                } catch (Exception $e) {
+                                                                                                                                                                                                                                                                    return $e;
+                                                                                                                                                                                                                                                }
+
+                                                                                                                                                                                              } //Function ends
+
+
+                                                                                                                                                                                                      ...
+                                                                                                     } //Class ends
+                                                                                                     
+                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                        ])
+                                                                                                                                                                                              }
+                                                                                                     }

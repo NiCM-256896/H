@@ -1,0 +1,6 @@
+# For development
+./configure --enable-debug
+# For production
+./configure
+Fix GH-7815: php_uname doesn't recognise latest Windows versions
+Fix #55371: get_magic_quotes_gpc() throws deprecation warning

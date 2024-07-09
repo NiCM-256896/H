@@ -1,0 +1,22 @@
+    // config/app.php
+        'providers' => [
+                    ...
+                            Ellaisys\Cognito\Providers\AwsCognitoServiceProvider::class,
+                                    
+        ];
+        ]
+
+            php artisan vendor:publish --provider="Ellaisys\Cognito\Providers\AwsCognitoServiceProvider"
+
+                'guards' => [
+                            'web' => [
+                                        'driver' => 'cognito-session', // This line is important for using AWS Cognito as Web Driver
+                                                    'provider' => 'users',
+                                                            ],
+                                                                    'api' => [
+                                                                                'driver' => 'cognito-token', // This line is important for using AWS Cognito as API Driver
+                                                                                            'provider' => 'users',
+                                                                                                    ],
+                                                                                                        ],
+                                                                                                        
+                ]
